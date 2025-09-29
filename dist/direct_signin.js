@@ -1,1 +1,0 @@
-import{e as a,b as s,r as o,j as t}from"./index.js";const i=()=>{const r=a.getCookie("token"),e=s();return o.useEffect(()=>(r?e("/dashboard",{replace:!0}):e("/",{replace:!0}),()=>{}),[]),t.jsx(t.Fragment,{})};export{i as default};
