@@ -1,0 +1,1 @@
+import{a as o}from"./index.js";const s="http://localhost:5070/api/videobuzz",a="VIDEOBUZZ_kNfOdiOXgYycGCH8KA";var e=o.create({baseURL:s,headers:{"Content-Type":"application/json","api-key":a}});const p={projects:"/projects",history:"/projectFetchHistory",posts:"/projectFetchPosts",dashboard:"/dashboard"};export{e as V,p as a};
