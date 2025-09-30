@@ -456,7 +456,6 @@ gulp.task("emoji", function(cb) {
 
 gulp.task("conf", function() {
     return gulp.src(["conf/conf.example.json"])
-        .pipe(rename("conf.json"))
         .pipe(gulp.dest(paths.dist));
 });
 
@@ -635,16 +634,6 @@ gulp.task("copy-hljs-languages", function() {
         .pipe(gulp.dest(paths.distVersion + "/highlightjs-languages/"));
 });
 
-gulp.task("copy-tmp-modules", gulp.series("jade", function() {
-    return gulp.src(paths.tmp + "modules/**/*")
-        .pipe(gulp.dest(paths.dist + "/"));
-}));
-
-gulp.task("copy-tmp-partials", gulp.series("jade", function() {
-    return gulp.src(paths.tmp + "partials/**/*")
-        .pipe(gulp.dest(paths.dist + "/"));
-}));
-
 gulp.task("link-images", gulp.series("copy-images", function(cb) {
     try {
         fs.unlinkSync(paths.dist+"images");
@@ -654,27 +643,21 @@ gulp.task("link-images", gulp.series("copy-images", function(cb) {
     cb();
 }));
 
-gulp.task("copy", gulp.series(
-    gulp.parallel([
-        "copy-fonts",
-        "copy-theme-fonts",
-        "copy-images",
-        "copy-emojis",
-        "copy-theme-images",
-        "copy-svg",
-        "copy-theme-svg",
-        "copy-extras",
-        "copy-ckeditor-translations",
-        "copy-hljs-languages"
-    ]),
-    gulp.parallel([
-        "copy-tmp-modules",
-        "copy-tmp-partials"
-    ])
-));
+gulp.task("copy", gulp.parallel([
+    "copy-fonts",
+    "copy-theme-fonts",
+    "copy-images",
+    "copy-emojis",
+    "copy-theme-images",
+    "copy-svg",
+    "copy-theme-svg",
+    "copy-extras",
+    "copy-ckeditor-translations",
+    "copy-hljs-languages"
+]));
 
 gulp.task("delete-old-version", function() {
-    return del([paths.dist + "**/*", "!" + paths.dist]);
+    return del(paths.dist + "v-*");
 });
 
 gulp.task("delete-tmp", function() {
@@ -702,11 +685,12 @@ gulp.task("express", function(cb) {
     app.use("/" + version + "/highlightjs-languages", express.static(__dirname + "/dist/" + version + "/highlightjs-languages"));
     app.use("/plugins", express.static(__dirname + "/dist/plugins"));
     app.use("/conf.json", express.static(__dirname + "/dist/conf.json"));
-    // Serve all files from dist root for modules and partials content
-    app.use("/", express.static(__dirname + "/dist/"));
     app.use(require('connect-livereload')({
         port: 35729
     }));
+
+    app.use("/", express.static(__dirname + "/tmp/modules"));
+    app.use("/", express.static(__dirname + "/tmp/partials"));
 
     app.all("/*", function(req, res, next) {
         //Just send the index.html for other files to support HTML5Mode
@@ -721,7 +705,7 @@ gulp.task("express", function(cb) {
 gulp.task("watch", function(cb) {
     livereload.listen();
 
-    gulp.watch(paths.jade, gulp.series(["jade-watch", "copy-tmp-modules", "copy-tmp-partials"]));
+    gulp.watch(paths.jade, gulp.parallel(["jade-watch"]));
     gulp.watch(paths.sass_watch, gulp.parallel(["styles-lint"]));
     gulp.watch(paths.styles_dependencies, gulp.parallel(["styles-dependencies"]));    gulp.watch(paths.svg, gulp.parallel(["copy-svg"]));
     gulp.watch(paths.coffee, gulp.parallel(["app-watch"]));
